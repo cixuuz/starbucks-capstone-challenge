@@ -1,13 +1,15 @@
 # Machine Learning Engineer Nanodegree
 ## Capstone Proposal
 Chen Tong  
-Jun 23rd, 2019
+Jun 25rd, 2019
 
 ## Proposal
 
 ### Domain Background
 
-Starbucks is an American coffeehouse chain. Once every few days, Starbucks sends out an offer to users via different ways such as mobile app. An offer can be merely an advertisement for a drink or an actual offer such as a discount or BOGO (buy one get one free). Some users might not receive any offer during certain weeks. An important characteristic regarding this capstone is that not all users receive the same offer.
+Starbucks is an American coffeehouse chain. Once every few days, Starbucks sends out an offer to users via different ways such as mobile app. An offer can be merely an advertisement for a drink or an actual offer such as a discount or BOGO (buy one get one free). Some users might not receive any offer during certain weeks. An important characteristic regarding this capstone is that not all users receive the same offer. As part of marketing strategy, we always want to figure out if a customer will spend more by giving an sound offer. Providing right offer to right customer could help build loyalty of the brand and product and as a result increasing sales margins in the long run.  
+The goal is to create a predictor to answer a question, that is, if a customer will response and complete an given offer? There are several articles about how to establish such predictor, for example, [Who Might Respond to Starbucks’ offer?](https://medium.com/@harrygky/who-might-respond-to-starbucks-offer-f275d939bf6f). This predictor could be made by leveraging different classification models.  
+
 
 ### Problem Statement
 
