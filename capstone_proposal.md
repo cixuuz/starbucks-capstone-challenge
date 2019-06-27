@@ -1,14 +1,14 @@
 # Machine Learning Engineer Nanodegree
 ## Capstone Proposal
 Chen Tong  
-Jun 25rd, 2019
+Jun 26rd, 2019
 
 ## Proposal
 
 ### Domain Background
 
-Starbucks is an American coffeehouse chain. Once every few days, Starbucks sends out an offer to users via different ways such as mobile app. An offer can be merely an advertisement for a drink or an actual offer such as a discount or BOGO (buy one get one free). Some users might not receive any offer during certain weeks. An important characteristic regarding this capstone is that not all users receive the same offer. As part of marketing strategy, we always want to figure out if a customer will spend more by giving an sound offer. Providing right offer to right customer could help build loyalty of the brand and product and as a result increasing sales margins in the long run.  
-The goal is to create a predictor to answer a question, that is, if a customer will response and complete an given offer? There are several articles about how to establish such predictor, for example, [Who Might Respond to Starbucks’ offer?](https://medium.com/@harrygky/who-might-respond-to-starbucks-offer-f275d939bf6f). This predictor could be made by leveraging different classification models.  
+Starbucks is an American coffeehouse chain. Once every few days, Starbucks sends out an offer to users via different ways such as mobile app. An offer can be merely an advertisement for a drink or an actual offer such as a discount or BOGO (buy one get one free). Some users might not receive any offer during certain weeks. An important characteristic regarding this capstone is that not all users receive the same offer. As part of marketing strategy, we always want to figure out if a customer will spend more by giving a sound offer. Providing right offer to right customer could help build loyalty of the brand and product and as a result increasing sales margins in the long run.  
+The goal is to create a predictor to answer a question, that is, if a customer will response and complete a given offer? There are several articles about how to establish such predictor, for example, [Who Might Respond to Starbucks’ offer?](https://medium.com/@harrygky/who-might-respond-to-starbucks-offer-f275d939bf6f). This predictor could be made by leveraging different classification models.  
 
 
 ### Problem Statement
@@ -23,25 +23,45 @@ One potential solution has 3 steps:
 The evaluation metrics is accuracy and F1-score. Accuracy means how will a model correctly predicts if an offer is complete. Since this dataset is imbalanced, F1-score is better choice than precision and recall because it is a weighted average of them. 
 
 ### Datasets and Inputs
-
-The data is contained in three files: 
+The datasets are sourced from Starbucks and data points are simulated to mimic customer behavior on the Starbucks rewards mobile app. Three files are included:   
 * portfolio.json - containing offer ids and meta data about each offer, such as the duration and the amount a customer need spend to complete it for an offer.    
 * profile.json - demographic data for each customer including their age, gender and income.    
 * transcript.json - records for transactions, offers received, offers viewed, and offers completed.  
 
-These files will be joined into one table which contains demographic  data of a customer, attributes of the offer and whether the customer complete the offer.  
+These files are cleaned, processed, transformed and joined into one table which contains demographic data of a customer, attributes of the offer and whether the customer complete the offer. The final dataset is 76277 * 20 in shape and columns or features are age, became_member_on, income, gender_F, gender_M, gender_O, gender_nan, difficulty, duration, reward, offer_type_bogo, offer_type_discount, offer_type_informational, channel_email, channel_web, channel_mobile, channel_social, reward%difficulty, difficulty%duration.  
+
+Labels values are balanced because the number of occurrences of positive label is 34809 while the number is 41468.
+
+Below are the first 5 rows of the dataset. The first column is label. The rest are features.  
+![Sample Data 1](images/sample1.png)
+![Sample Data 2](images/sample2.png)
+
 
 ### Solution Statement
 
-This is a binary classifier. Whether a customer complete an offer or not is represented as 1 (complete) or 0 (incomplete). The metrics are accuracy and F1-score. The higher the better. We will use XGBoost and Deep Learning models in this solution. 
+Recall the problem, "if a customer will response and complete a given offer?". In dataset, we have features profiling customers and other features about offer descriptions. But we didn't include any information from transaction because the transaction may hint the answer. The label is 1 (complete) or 0 (incomplete). Thus, this is a [binary classification problem](https://en.wikipedia.org/wiki/Binary_classification).   
+
+Some common methods are decision tree, random forests, support vector machines(svm) and neural networks(nn). In this project, we will use boosting random forests (XGBoost) model as benchmark model and use neural networks(pytorch) as solution model.   
+
+ROC-AUC is used as metric for model evaluations. It computes area under the Receiver Operating Characteristic Curve (ROC AUC) from prediction scores. Higher is better. According to [this article](https://medium.com/usf-msds/choosing-the-right-metric-for-evaluating-machine-learning-models-part-2-86d5649a5428), we choose ROC-AUC because the datasets are balanced and we only care about the final class predictions. See roc curve image: ![roc-auc](images/roc-auc.png)  
+
+The model is replicable because once the hyperparameter and datasets are set, the model articles should be similar.   
 
 ### Benchmark Model
 
-XGBoost will be benchmark model here. The XGBoost is a boosting random  tree model which is very classic way to solve binary classification problem. I will train a simple XGBoost using basic hyperparameters and set their metrics as baseline for solution model.
+We use XGBoost model as benchmark. Hyperparameters are 
+- max_depth=5,
+- eta=0.2,
+- gamma=4,
+- min_child_weight=6,
+- subsample=0.8,
+- objective='binary:logistic',
+
+The ROC-AUC score is 0.71594. This result will be used as the threshold to determine the improvement of solution model of which the ROC-AUC score is higher.  
 
 ### Evaluation Metrics
 
-I chose two evaluation metric that can be used to quantify the performance of both the benchmark model and the solution model. The evaluation metrics are accuracy and F1 score. See reference for the definitions of them.   
+ROC-AUC is used as evaluation metric. It computes area under the Receiver Operating Characteristic Curve (ROC AUC) from prediction scores. This will quantify the performance of both the benchmark model and the solution model. The reason is that the datasets are balanced and also, we only care about the final class predictions and we don’t want to tune threshold.  
 
 ### Project Design
 
@@ -53,9 +73,8 @@ The project will follow this workflow for approaching a solution:
         * Transcript: make an offer completion column or dataset based on customer's behaviors(events). 
     2. Data Transformation: Join these tables into a data set. The first column is whether the offer is completed, and the rest are features from profile and portfolio.  
 2. Feature Engineering  
-    1. Exploratory analyze features to choose a small number of uncorrelated features.    
-    2. If features are too many, I may consider to reduce dimensionality by performing a PCA.  
-    3. Prepare final datasets: split dataset into train, valuation and test datasets.    
+    1. Determine features by exploratory analyze features to choose a small number of uncorrelated features. If features are too many, I may consider reducing dimensionality by performing a PCA.  
+    2. Prepare final datasets: split dataset into train, valuation and test datasets.    
 3. Train XGBoost Model on SageMaker  
 4. Train Deep Learning Model on SageMaker  
 5. Hyperparameter Tuning Deep Learning Model on SageMaker  
