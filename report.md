@@ -3,7 +3,7 @@
 Machine Learning Engineer Nanodegree
 
 Chen Tong 
-Jun 27, 2019
+Jun 28, 2019
 
 Table of content
 - [Definition](#Definition)
@@ -19,12 +19,17 @@ Table of content
   - [Benchmark](#Benchmark)
 - [Methodology](#Methodology)
   - [Data Preprocessing](#Data-Preprocessing)
+    - [Portfolio Dataset](#Portfolio-Dataset)
+    - [Profile Dataset](#Profile-Dataset)
+    - [Transcript Dataset](#Transcript-Dataset)
+    - [Combined Dataset](#Combined-Dataset)
+    - [Train and Test Dataset](#Train-and-Test-Dataset)
   - [Implementation](#Implementation)
   - [Refinement](#Refinement)
 - [Results](#Results)
   - [Model Evaluation and Validation](#Model-Evaluation-and-Validation)
   - [Justification](#Justification)
-- [Conclusion](#Conclusion)
+- [Reference:](#Reference)
 
 
 ## Definition
@@ -110,7 +115,13 @@ We could clearly see the offer id `290` is received and completed without view e
 The offer is viewed after completion. We also observe that the time offer viewed is still in valid duration and amount after offer received exceed difficulty (required amount). We consider this case also completed offer because customer may see the offer summary (not detail) and didn't take any response to it timely. But we don't consider the offer is completed if any requirements such as duration or difficulty are satisfied. 
 
 ### Algorithms and Techniques
-nn is used here. Need introduction. 
+
+Our solution for this problem is a custom PyTorch neural network classifier. Neural networks are a kind of supervised learning model. It computes systems that are inspired by, but not necessarily identical to, the biological neural networks that constitute animal brains. Such systems "learn" to perform tasks by considering examples, generally without being programmed with any task-specific rules.
+Our model will have one hidden layer between input and output layer. And nodes are fully connected. See below image for the graph:
+
+![nn](images/neural_network.png)
+
+There are other factors impact our model such as dropout, optimizer and criterion. A dropout function is added because we would like to avoid over-fitting. In training process, some data points may drop out with a certain probability. We use Adam Optimizer which is a common one in PyTorch. The object of using an optimizer is that We want the model to get trained to reach the state of maximum accuracy given resource constraints like time, computing power, memory etc. As for loss function, we choose [BCEloss](https://pytorch.org/docs/stable/nn.html#bceloss) which measures the Binary Cross Entropy between the target and the output. 
 
 ### Benchmark
 
@@ -125,22 +136,75 @@ We use XGBoost model as benchmark. Hyperparameters are
 The ROC-AUC score is 0.71594. This result will be used as the threshold to determine the improvement of solution model of which the ROC-AUC score is higher.  
 
 ## Methodology
-
 ### Data Preprocessing
+In this section, we will preprocess three datasets and deal with abnormalities data points and combine them to the dataset which will be used for training and testing models. The development codes are in starbucks notebook and in scripts folder.    
+  
+#### Portfolio Dataset
+In this dataset, we found two columns are category data, `offer_type` and `channels`. We first break out these two columns by using [one hot encoding](https://hackernoon.com/what-is-one-hot-encoding-why-and-when-do-you-have-to-use-it-e3c6186d008f). Second, all columns are numeric data except id and columns like difficulty, reward are measured on different scales comparing to one hot encoding columns. We adjust those values by performing [normalization](https://en.wikipedia.org/wiki/Normalization_(statistics)) on them. Third, since we do normalization, we may lose value as being absolute value. We add two more features, that is, the ratio of reward against difficulty and the ratio of difficulty against duration. The former represents the ratio of return by completing an offer. You could image the higher the value, the higher probabilty a custome tend to response it. The latter shows the ratio of on average how much to pay to finish an offer. The lower is more attractive. The below image shows the processed portfolio dataset. There are 10 features.   
 
-`offer_type` and `channels` are category data. We could do one-hot encoding on these two columns. The data
+![portfolio dataset](images/processed_portfolio.png)
+
+#### Profile Dataset
+As for profile, similar to portfolio dataset, we have one category column, `gender`. We apply one hot encoding to this column. Then, we need to deal with `NaN` in income and age. We choose median to fill in because we saw the distribution of those two columns are skewed so that median maybe a better choice than average. Next, we have a date type column, become_member_on. This value matters but the actual value is not neccessary. We convert the data to unix timestamp so we only keep the distance in timeline. Lastly, all columns are numeric now. They need be in same scale. Thus, we do normalization on all columns. Here is the processed dataset.  
+
+![profile dataset](images/processed_proflie.png)
+
+#### Transcript Dataset
+In terms of transcript, our goal is create a label dataset. First of all, we need clean this dataset. We saw a complex dictionary data structure in value column so that the value column break out into two columns, offer_id and amount (we don't care reward here). Then, we need combine transcript and portfolio dataset because we need difficulty, duration and offer type to help judge if an offer is completed or not. Next, we have a `process_one_customer_transcript`. In this method, first step is to group by person and offer and calculate amount spent, receive time, view time, expected complete time and complete time (see detailed commets in scripts/process_transcript.py). We follow several rules to tell a offer is completed,
+1. if offer has received event, viewed event and completed event in order.
+2. if offer has received event, completed event and viewed event in order and viewed event happened before expire date and amount spent is reached. 
+3. if offer is informational and offer has received event and view event and also they happened before expire date and amount spent is reached.  
+
+The follow is processed transcript dataset. The final column is label column, which will then convert to integer. 1 is complete while 0 is incomplete. 
+
+![transcript dataset1](images/processed_transcript1.png)
+![transcript dataset2](images/processed_transcript2.png)
+
+#### Combined Dataset
+
+We need a combined dataset for model feeding. This final dataset is achieved using pandas merge functionality. We also removed useless columns such as offer id, person id and extra columns in transcript. In the end, there are 76277 data points and 19 features: is_complete, age, became_member_on, income, gender_F, gender_M, gender_O, gender_nan, difficulty, duration, reward, offer_type_bogo, offer_type_discount, offer_type_informational, channel_email, channel_web, channel_mobile, channel_social, reward_difficulty, difficulty_duration. 
+
+#### Train and Test Dataset
+
+We wrote a `train_test_split` split the whole dataset into train and test datasets with decimal fraction `0.7` and random seed `666`. Thus, the dataset could be reproduced. 
 
 ### Implementation
 
+This section will state detailed implementation step by step:
+
+1. Load data to S3. The data includes train.csv and test.csv files with features and class labels we prepared in previous section. The reason is sagemaker estimater will normally read data from S3. 
+2. Modeling
+   1. Define NN model(see detail in pytorch/model.py). Since we use PyTorch neural network, we need define the network graph in forward method . Here we use two layer network and the output layer is a sigmod function which produce one dimentional data. 
+   2. Write a train script(see detail in pytorch/train.py). A train program is needed because this model is customized one. In this script, we load training data, parse hyperparameters, initialize the customized model, train this model and finally save model articles for later deployment and predictions.  
+   3. Create an estimator. Still, a custom SageMaker estimator is created with specified entry point which is the model.py in pytorch file. In this step, we give hyperparameters, 30 hidden dim, to valuate the model. 
+   4. Train the estimator with train data in S3.  
+   5. Deploy the trained model. `pytorch/predict.py` file as an entry point.
+3. Evaluate the trained model. After the model is deployed, we could simply call perdict method to get the result. And then we use roc_auc_sore function from sklearn metrics to calculate the metric `ROC AUC` score. 
+4. Hyperparameter tuning. In this stage, we choose different options for hyperparameters, such as lower hidden dim, increase epochs and modify drop rate, etc. We chose a model with lowest loss value. 
+5. Evaluate best trained model. Simiar to previous evaluation. We evaluate test with best trained model.  
+6. Clean up Resources including entrypoints, S3 files and unless files in SageMaker notebook. 
+
 ### Refinement
+
+We refine the model with two ways. 
+1. We adjust hyperparameters. 
 
 ## Results
 
+This section will discuss the final model's qualities and metric result. Also, we will compare the result to that of our benchmark model. 
+
 ### Model Evaluation and Validation
+
+
 
 ### Justification
 
 
-## Conclusion
-
-Improvement
+## Reference:
+1. [Pytorch tutorial](https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html)
+2. [Pytorch NN](https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html)
+3. [Artificial Neural Network](https://en.wikipedia.org/wiki/Artificial_neural_network)
+4. [Pytorch dropout](https://pytorch.org/docs/stable/_modules/torch/nn/modules/dropout.html)
+5. [Pytorch Adam](https://pytorch.org/docs/stable/_modules/torch/optim/adam.html)
+6. [BCEloss](https://pytorch.org/docs/stable/nn.html#bceloss)
+7. 
