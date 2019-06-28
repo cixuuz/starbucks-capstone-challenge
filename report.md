@@ -107,11 +107,22 @@ We could clearly see the offer id `290` is received and completed without view e
 
 ![complete before view](images/complete_then_view.png)
 
-The offer is viewed after completion. We also observe that the time offer viewed is still in valid duration and amount after offer received exceed difficulty (required amount). We consider this case also completed offer because customer may see the offer but didn't take any response to it. But we don't consider the offer is completed if any requirements such as duration or difficulty are satisfied. 
+The offer is viewed after completion. We also observe that the time offer viewed is still in valid duration and amount after offer received exceed difficulty (required amount). We consider this case also completed offer because customer may see the offer summary (not detail) and didn't take any response to it timely. But we don't consider the offer is completed if any requirements such as duration or difficulty are satisfied. 
 
 ### Algorithms and Techniques
+nn is used here. Need introduction. 
 
 ### Benchmark
+
+We use XGBoost model as benchmark. Hyperparameters are 
+- max_depth=5,
+- eta=0.2,
+- gamma=4,
+- min_child_weight=6,
+- subsample=0.8,
+- objective='binary:logistic',
+
+The ROC-AUC score is 0.71594. This result will be used as the threshold to determine the improvement of solution model of which the ROC-AUC score is higher.  
 
 ## Methodology
 
