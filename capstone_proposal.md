@@ -20,7 +20,6 @@ One potential solution has 3 steps:
 2. Training XGBoost Model as baseline.  
 3. Training PyTorch deep learning model and improve the results. 
 
-The evaluation metrics is accuracy and F1-score. Accuracy means how will a model correctly predicts if an offer is complete. Since this dataset is imbalanced, F1-score is better choice than precision and recall because it is a weighted average of them. 
 
 ### Datasets and Inputs
 The datasets are sourced from Starbucks and data points are simulated to mimic customer behavior on the Starbucks rewards mobile app. Three files are included:   
