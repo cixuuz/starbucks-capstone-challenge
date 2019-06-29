@@ -52,6 +52,7 @@ Below are the first 5 rows of the dataset. The first column is label. The rest a
 ![Sample Data 1](images/sample1.png)
 ![Sample Data 2](images/sample2.png)
 
+Previous researches on same datasets are found. A research, [Who Might Respond to Starbucks' offer?](https://medium.com/@harrygky/who-might-respond-to-starbucks-offer-f275d939bf6f) try to solve similar question by AdaBoostClassifier. When processing transcript dataset, it simply removed offers that are completed but no viewed and ignore more complex case such as a offer that is completed and then viewed, etc. Another research [Starbucks Capstone Challenge Dataset Customer Offer Success Prediction](https://medium.com/@mspcvsp/starbucks-capstone-challenge-dataset-customer-offer-success-prediction-916bbcdc5bd5) uses random forest model by creating features that describe an offer's success rate as a function of offer difficulty, duration and reward. Our benchmark model is inspired by this research. XGBoost, a implementation of boosting random forest model is a good candidate for comparing our solution's performance. Thus, in our research, we try another popular model, neural network and we do see the new model bring improvements on the prediction. 
 
 ### Problem Statement
 
