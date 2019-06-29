@@ -35,10 +35,21 @@ The project aim to the data simulates how people make purchasing decisions and h
 # File Description
 - `capstone_proposal.pdf`: the project proposal.  
 - `data` folder contains json files in data dictionary.  
-The rest part is under development.  
+- `script` folder contains scripts to process files. 
+- `starbucks.ipnb` is the jupyter notebook with most development content. 
+- `pytorch` folder contains model train/model/predict scripts. 
 
 # Result
-Under development
+
+The first row is the first model and the last row is final model. 
+
+| hidden dim | epochs | drop out | loss value | ROC AUC | 
+| ---        | ---    | ----     | ---        | ---     |
+| 30         | 100    | 0.25     | 0.5635     | 0.6952  |
+| 15         | 100    | 0.25     | 0.5717     | 0.7056  |
+| 15         | 200    | 0.25     | 0.5708     | 0.7111  |
+| 100        | 100    | 0.15     | 0.4545     | 0.7605  |
+| 190        | 200    | 0.15     | 0.4426     | 0.7843  | 
 
 # License
 The content of this repository is licensed under a [MIT license](LICENSE)
