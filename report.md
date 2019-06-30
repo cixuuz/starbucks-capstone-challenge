@@ -15,6 +15,7 @@ Table of content
     - [Portfolio Data](#Portfolio-Data)
     - [Profile Data](#Profile-Data)
     - [Transcript Data](#Transcript-Data)
+    - [Descriptive statistics](#Descriptive-statistics)
   - [Algorithms and Techniques](#Algorithms-and-Techniques)
   - [Benchmark](#Benchmark)
 - [Methodology](#Methodology)
@@ -114,6 +115,19 @@ We could clearly see the offer id `290` is received and completed without view e
 ![complete before view](images/complete_then_view.png)
 
 The offer is viewed after completion. We also observe that the time offer viewed is still in valid duration and amount after offer received exceed difficulty (required amount). We consider this case also completed offer because customer may see the offer summary (not detail) and didn't take any response to it timely. But we don't consider the offer is completed if any requirements such as duration or difficulty are satisfied. 
+
+#### Descriptive statistics
+
+Feature distribution is a critical characteristic that influences models greatly. We would like to visualize pairwise relationships in our dataset. This creates a matrix of axes and shows the relationship for each pair of columns and also draws the univariate distribution of each variable on the diagonal axe. 
+
+Below are plots on features we are interested on.
+1. ```seaborn.pairplot(df[["is_complete", "age", "became_member_on", "income"]])```. We can see become_member_on skews towards right while income skews towards left. And age data is distributed normally. We could also tell young people don't have higher income, which may be a common sense. And we observe that higher income group are getting to join reward programs. This may be a good signal of revenue growing. 
+  ![pair_wise_compare](images/pairwise_compare1.png)
+
+2. ```seaborn.pairplot(df[["is_complete", "difficulty", "duration", "reward"]])```. Offer's sample size is too small, but we still see normal distribution on the diagrams. Other fact is as difficulty increase, duration and rewards tend to increase too. 
+  ![pair_wise_compare](images/pairwise_compare2.png)
+
+In summary, we do see some relationships among different features. But their relationship with our object `is complete an offer` is not so clear. It makes sense because each feature may only contribute little or nothing to describe the object. Thus, our model should have such an ability to capture all valuable information from all those features. 
 
 ### Algorithms and Techniques
 
@@ -232,3 +246,4 @@ The final model above shows a better score than XGBoost. In number, 0.78 vs 0.71
 6. [BCEloss](https://pytorch.org/docs/stable/nn.html#bceloss)
 7. [Hyperparameter tuning](https://towardsdatascience.com/hyperparameter-tuning-c5619e7e6624)
 8. [Hyperparameter optimization](https://en.wikipedia.org/wiki/Hyperparameter_optimization)
+9. [Seaborn doc](https://seaborn.pydata.org/tutorial/distributions.html#visualizing-pairwise-relationships-in-a-dataset)
